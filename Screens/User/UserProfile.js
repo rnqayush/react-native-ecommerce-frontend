@@ -4,13 +4,13 @@ import { Container } from "native-base"
 import { useFocusEffect } from "@react-navigation/native"
 import AsyncStorage from "@react-native-community/async-storage"
 import OrderCard from "../../Shared/OrderCard"
-
+import Toast from "react-native-toast-message";
 import axios from "axios"
 import baseURL from "../../assets/common/baseUrl"
 
 import AuthGlobal from "../../Context/store/AuthGlobal"
 import { logoutUser } from "../../Context/actions/Auth.actions"
-import { useEffect } from 'react/cjs/react.development';
+
 
 const UserProfile = (props) => {
     const context = useContext(AuthGlobal)
@@ -25,16 +25,34 @@ const UserProfile = (props) => {
         ) {
             props.navigation.navigate("Login")
         }
-
+        setUserProfile(context.stateUser.userProfile)
+        console.log(context.stateUser);
         AsyncStorage.getItem("jwt")
             .then((res) => {
+                
                 axios
                     .get(`${baseURL}users/${context.stateUser.user.sub}`, {
                         headers: { Authorization: `Bearer ${res}` },
                     })
-                    .then((user) => setUserProfile(user.data))
+                  
+                    
+                    
             })
             .catch((error) => console.log(error))
+            if(context.stateUser.isAuthenticated === true){
+                Toast.show({
+                    topOffset: 60,
+                    type: "success",
+                    text1: `${context.stateUser.userProfile.name} `,
+                  })
+            }else{
+                Toast.show({
+                    topOffset: 60,
+                    type: "success",
+                    text1: "Logout Successful",
+                  })
+            }
+            
 
         axios
         .get(`${baseURL}orders`)
@@ -51,15 +69,17 @@ const UserProfile = (props) => {
         return () => {
             setUserProfile();
             setOrders();
+            
         }
 
     }, [context.stateUser.isAuthenticated]))
+    
 
     return (
        <Container style={styles.container}>
            <ScrollView contentContainerStyle={styles.subContainer}>
                <Text style={{ fontSize: 30 }}>
-                   {userProfile ? userProfile.name : "" }
+                   name: {userProfile ? userProfile.name : "" }
                </Text>
                <View style={{ marginTop: 20 }}>
                     <Text style={{ margin: 10 }}>
